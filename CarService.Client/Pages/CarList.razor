@@ -1,0 +1,72 @@
+﻿@page "/cars"
+@inject HttpClient http
+@inject IJSRuntime jsRuntime
+@inject NavigationManager manager;
+<h3>Car List</h3>
+<div class="form-group">
+    <a class="btn btn-success" href="cars/create">Create New Car</a>
+</div>
+@if (cars == null)
+{
+    <div class="text-center">
+        <div class="spinner-border" role="status">
+            <span class="sr-only">Loading....</span>
+        </div>
+    </div>
+}
+else if (cars.Count == 0)
+{
+    <text>There no record to show</text>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Image</th>
+                <th>Model</th>
+                <th>ManufactureDate</th>
+                <th>IsAvailable</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var car in cars)
+            {
+                <tr>
+                    <td>@car.Id</td>
+                    <td><img height="50" width="50" src="@car.ImageUrl"></td>
+                    <td>@car.Model</td>
+                    <td>@car.ManufactureDate</td>
+                    <td>@car.IsAvailable</td>
+                    <td>
+                        <a class="btn btn-sm btn-primary" href="cars/edit/@car.Id">Edit</a> |
+                        <button @onclick="async ()=>await Delete(car)" class="btn btn-danger btn-sm">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    List<Car> cars { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        cars = await http.GetFromJsonAsync<List<Car>>("api/cars");
+    }
+    private async Task Delete(Car car)
+    {
+        bool confirmed = await jsRuntime.InvokeAsync<bool>("confirm", "Are you sure to delete the record");
+        if (confirmed)
+        {
+            var response = await http.DeleteAsync($"api/cars/{car.Id}");
+            if (response.IsSuccessStatusCode)
+            {
+                cars.Remove(car);
+            }
+
+        }
+    }
+}

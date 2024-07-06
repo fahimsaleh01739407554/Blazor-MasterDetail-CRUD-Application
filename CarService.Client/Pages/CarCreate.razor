@@ -1,0 +1,25 @@
+﻿@page "/cars/create"
+@inject HttpClient http;
+@inject NavigationManager manager;
+<h3>Create New Car</h3>
+<div class="row">
+    <CarForm car="car" OnValidSubmit="OnValidSubmit"></CarForm>
+</div>
+
+@code {
+    Car car = new Car();
+    private async Task OnValidSubmit()
+    {
+        var response = await http.PostAsJsonAsync("api/cars", car);
+        var body = await response.Content.ReadAsStringAsync();
+        if (response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"The new car id is {body}");
+            manager.NavigateTo("cars");
+        }
+        else
+        {
+            Console.WriteLine($"{body}");
+        }
+    }
+}
